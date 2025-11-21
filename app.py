@@ -3,21 +3,25 @@ import random
 
 st.set_page_config(page_title="구룡투", layout="centered")
 
-# 초기 세션 값 설정
+# =======================
+# 초기 세션 상태
+# =======================
 if "init" not in st.session_state:
     st.session_state.init = True
     st.session_state.started = False
-    st.session_state.first = None             # 선공(1)/후공(0)
+    st.session_state.first = None             # 선공=1 / 후공=0
     st.session_state.round = 1
     st.session_state.my_nums = list(range(1, 10))
     st.session_state.opps_nums = list(range(1, 10))
-    st.session_state.history = []             # 전체 라운드 기록
+    st.session_state.history = []             # 라운드 기록
     st.session_state.win = 0
     st.session_state.lose = 0
 
 st.title("🐉 구룡투 스트림릿 버전")
 
+# =======================
 # 게임 시작 전
+# =======================
 if not st.session_state.started:
     st.markdown("## 선/후공을 선택하세요")
     choice = st.radio("선택", ["선공", "후공", "랜덤"], horizontal=True)
@@ -35,14 +39,9 @@ if not st.session_state.started:
 
     st.stop()
 
-
-# ================================
-# 게임 메인 라운드 진행
-# ================================
-
-st.markdown(f"## 📢 현재 **{st.session_state.round} 라운드**")
-
-# 라운드 종료 후(10라운드) → 최종 결과 출력
+# =======================
+# 9라운드 종료 후 최종 결과
+# =======================
 if st.session_state.round > 9:
     st.markdown("---")
     st.markdown("## 🎉 최종 결과 🎉")
@@ -63,18 +62,23 @@ if st.session_state.round > 9:
 
     st.stop()
 
+# =======================
+# 현재 라운드 표시
+# =======================
+st.markdown(f"## 📢 현재 **{st.session_state.round} 라운드**")
 
-# 상대 선공 / 내 선공에 따라 분리
+# =======================
+# 라운드 진행
+# =======================
+# 선공
 if st.session_state.first == 1:
     st.markdown("### 🔥 당신은 **선공**입니다.")
-
-    # 내가 제출
     my_num = st.selectbox("제출할 숫자", st.session_state.my_nums)
 
     if st.button("제출"):
         st.session_state.my_nums.remove(my_num)
 
-        # 상대는 랜덤
+        # 상대 숫자 랜덤
         opps_num = random.choice(st.session_state.opps_nums)
         st.session_state.opps_nums.remove(opps_num)
 
@@ -98,28 +102,26 @@ if st.session_state.first == 1:
             st.session_state.lose += 1
             st.session_state.first = 0
 
-        # 기록 저장
-        st.session_state.history.append(
-            {
-                "round": st.session_state.round,
-                "my": my_num,
-                "op": opps_num,
-                "result": result
-            }
-        )
+        # 기록에는 상대 숫자 숨김
+        st.session_state.history.append({
+            "round": st.session_state.round,
+            "my": my_num,
+            "op": "?",       # 상대 숫자 숨김
+            "result": result
+        })
 
         st.session_state.round += 1
         st.rerun()
 
+# 후공
 else:
     st.markdown("### ❄️ 당신은 **후공**입니다.")
 
-    # 상대 먼저 제출 (홀/짝만 알려줌)
+    # 상대 먼저 제출
     opps_num = random.choice(st.session_state.opps_nums)
-
+    # 홀/짝만 공개
     st.markdown(f"상대는 **{'홀수' if opps_num % 2 else '짝수'}**를 제출했습니다.")
 
-    # 내가 선택
     my_num = st.selectbox("제출할 숫자", st.session_state.my_nums)
 
     if st.button("제출"):
@@ -146,29 +148,21 @@ else:
             st.session_state.lose += 1
             st.session_state.first = 0
 
-        st.session_state.history.append(
-            {
-                "round": st.session_state.round,
-                "my": my_num,
-                "op": opps_num,
-                "result": result
-            }
-        )
+        st.session_state.history.append({
+            "round": st.session_state.round,
+            "my": my_num,
+            "op": "?",       # 상대 숫자 숨김
+            "result": result
+        })
 
         st.session_state.round += 1
         st.rerun()
 
-
-# ================================
-# 실시간 라운드 기록
-# ================================
-
+# =======================
+# 라운드 기록 출력
+# =======================
 st.markdown("---")
 st.markdown("## 📜 라운드 진행 상황")
-
 for h in st.session_state.history:
-    st.markdown(
-        f"**{h['round']} 라운드** → "
-        f"당신: {h['my']} / 상대: {h['op']} → **{h['result']}**"
-    )
+    st.markdown(f"**{h['round']} 라운드** → 당신: {h['my']} / 상대: {h['op']} → **{h['result']}**")
 
