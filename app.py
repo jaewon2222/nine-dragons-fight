@@ -27,17 +27,19 @@ st.write("게임을 시작하겠습니다.")
 
 # Choose first / second
 if st.session_state.first is None:
-    choice = st.radio("선/후공을 선택해주세요", ["선공", "후공", "랜덤"])
-    if st.button("확정"):
-        if choice == "선공":
-            st.session_state.first = 1
-        elif choice == "후공":
-            st.session_state.first = 0
-        else:
-            st.session_state.first = random.randint(0,1)
+    # 라디오 선택을 바로 세션 상태에 저장하도록 변경 (확정 버튼 제거)
+    choice = st.radio("선/후공을 선택해주세요", ["선공", "후공", "랜덤"], key="choice")
+    if choice == "선공":
+        st.session_state.first = 1
+        st.experimental_rerun()
+    elif choice == "후공":
+        st.session_state.first = 0
+        st.experimental_rerun()
+    else:
+        st.session_state.first = random.randint(0,1)
         st.experimental_rerun()
 else:
-    st.write("당신은 **{}** 입니다.".format("선공" if st.session_state.first==1 else "후공"))
+    st.write(f"당신은 **{'선공' if st.session_state.first==1 else '후공'}** 입니다.")
 
 # Game loop
 if not st.session_state.finished and st.session_state.first is not None:
@@ -113,4 +115,3 @@ if st.session_state.finished:
         for key in list(st.session_state.keys()):
             del st.session_state[key]
         st.experimental_rerun()
-
