@@ -29,17 +29,17 @@ if st.session_state.first is None:
     with col1:
         if st.button("선공", use_container_width=True):
             st.session_state.first = 1
-            st.experimental_rerun()
+            st.rerun()
 
     with col2:
         if st.button("후공", use_container_width=True):
             st.session_state.first = 0
-            st.experimental_rerun()
+            st.rerun()
 
     with col3:
         if st.button("랜덤", use_container_width=True):
             st.session_state.first = random.randint(0,1)
-            st.experimental_rerun()
+            st.rerun()
 
 else:
     st.write(f"당신은 **{'선공' if st.session_state.first==1 else '후공'}** 입니다.")
@@ -102,7 +102,7 @@ if not st.session_state.finished and st.session_state.first is not None:
             st.session_state.finished = True
 
         st.session_state.round += 1
-        st.experimental_rerun()
+        st.rerun()
 
 # --- Final Result ---
 if st.session_state.finished:
@@ -122,4 +122,4 @@ if st.session_state.finished:
 
     if st.button("다시 시작", use_container_width=True):
         init_state()
-        st.experimental_rerun()
+        st.rerun()
