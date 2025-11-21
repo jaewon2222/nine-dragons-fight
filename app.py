@@ -17,7 +17,7 @@ if "init" not in st.session_state:
     st.session_state.win = 0
     st.session_state.lose = 0
 
-st.title("🐉 구룡투 스트림릿 버전 (홀/짝 기록)")
+st.title("🐉 구룡투 스트림릿 버전 (홀수/짝수 기록)")
 
 # =======================
 # 게임 시작 전
@@ -81,8 +81,8 @@ if st.session_state.first == 1:
         opps_num = random.choice(st.session_state.opps_nums)
         st.session_state.opps_nums.remove(opps_num)
 
-        # 홀/짝 표시
-        opps_parity = "홀" if opps_num % 2 else "짝"
+        # 홀수/짝수 표시
+        opps_parity = "홀수" if opps_num % 2 else "짝수"
         st.markdown(f"상대는 **{opps_parity}**를 제출했습니다.")
 
         # 판정
@@ -105,11 +105,11 @@ if st.session_state.first == 1:
             st.session_state.lose += 1
             st.session_state.first = 0
 
-        # 기록에는 상대 홀/짝만 저장
+        # 기록에는 상대 홀수/짝수만 저장
         st.session_state.history.append({
             "round": st.session_state.round,
             "my": my_num,
-            "op": opps_parity,  # 홀/짝 기록
+            "op": opps_parity,  # 홀수/짝수 기록
             "result": result
         })
 
@@ -122,7 +122,7 @@ else:
     # 상대 먼저 제출
     opps_num = random.choice(st.session_state.opps_nums)
     st.session_state.opps_nums.remove(opps_num)
-    opps_parity = "홀" if opps_num % 2 else "짝"
+    opps_parity = "홀수" if opps_num % 2 else "짝수"
     st.markdown(f"상대는 **{opps_parity}**를 제출했습니다.")
 
     my_num = st.selectbox("제출할 숫자", st.session_state.my_nums)
@@ -150,11 +150,11 @@ else:
             st.session_state.lose += 1
             st.session_state.first = 0
 
-        # 기록에는 상대 홀/짝만 저장
+        # 기록에는 상대 홀수/짝수만 저장
         st.session_state.history.append({
             "round": st.session_state.round,
             "my": my_num,
-            "op": opps_parity,  # 홀/짝 기록
+            "op": opps_parity,  # 홀수/짝수 기록
             "result": result
         })
 
