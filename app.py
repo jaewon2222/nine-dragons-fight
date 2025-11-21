@@ -17,7 +17,7 @@ if "init" not in st.session_state:
     st.session_state.win = 0
     st.session_state.lose = 0
 
-st.title("🐉 구룡투 스트림릿 버전 (홀수/짝수 기록)")
+st.title("구룡투")  # 게임 이름을 단순하게 "구룡투"로
 
 # =======================
 # 게임 시작 전
@@ -68,7 +68,7 @@ if st.session_state.round > 9:
 st.markdown(f"## 📢 현재 **{st.session_state.round} 라운드**")
 
 # =======================
-# 라운드 진행
+# 선공 라운드
 # =======================
 if st.session_state.first == 1:
     st.markdown("### 🔥 당신은 **선공**입니다.")
@@ -109,19 +109,24 @@ if st.session_state.first == 1:
         st.session_state.history.append({
             "round": st.session_state.round,
             "my": my_num,
-            "op": opps_parity,  # 홀수/짝수 기록
+            "op": opps_parity,
             "result": result
         })
 
         st.session_state.round += 1
         st.rerun()
 
+# =======================
+# 후공 라운드
+# =======================
 else:
     st.markdown("### ❄️ 당신은 **후공**입니다.")
 
-    # 상대 먼저 제출
-    opps_num = random.choice(st.session_state.opps_nums)
-    st.session_state.opps_nums.remove(opps_num)
+    # 후공일 경우, 상대 숫자를 세션에 고정
+    if f"round_{st.session_state.round}_opponent" not in st.session_state:
+        st.session_state[f"round_{st.session_state.round}_opponent"] = random.choice(st.session_state.opps_nums)
+
+    opps_num = st.session_state[f"round_{st.session_state.round}_opponent"]
     opps_parity = "홀수" if opps_num % 2 else "짝수"
     st.markdown(f"상대는 **{opps_parity}**를 제출했습니다.")
 
@@ -129,6 +134,7 @@ else:
 
     if st.button("제출"):
         st.session_state.my_nums.remove(my_num)
+        st.session_state.opps_nums.remove(opps_num)
 
         # 판정
         if my_num == 1 and opps_num == 9:
@@ -150,15 +156,18 @@ else:
             st.session_state.lose += 1
             st.session_state.first = 0
 
-        # 기록에는 상대 홀수/짝수만 저장
+        # 기록
         st.session_state.history.append({
             "round": st.session_state.round,
             "my": my_num,
-            "op": opps_parity,  # 홀수/짝수 기록
+            "op": opps_parity,
             "result": result
         })
 
+        # 다음 라운드 진행
         st.session_state.round += 1
+        # 세션 저장된 후공 상대 삭제
+        del st.session_state[f"round_{st.session_state.round-1}_opponent"]
         st.rerun()
 
 # =======================
@@ -168,5 +177,3 @@ st.markdown("---")
 st.markdown("## 📜 라운드 진행 상황")
 for h in st.session_state.history:
     st.markdown(f"**{h['round']} 라운드** → 당신: {h['my']} / 상대: {h['op']} → **{h['result']}**")
-
-
