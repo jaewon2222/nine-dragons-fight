@@ -1,179 +1,157 @@
 import streamlit as st
 import random
 
-st.set_page_config(page_title="구룡투", layout="centered")
-
-# =======================
-# 초기 세션 상태
-# =======================
-if "init" not in st.session_state:
-    st.session_state.init = True
-    st.session_state.started = False
-    st.session_state.first = None             # 선공=1 / 후공=0
+# -----------------------
+# 초기 상태 설정
+# -----------------------
+if "my_nums" not in st.session_state:
+    st.session_state.my_nums = [1,2,3,4,5,6,7,8,9]
+if "opps_nums" not in st.session_state:
+    st.session_state.opps_nums = [1,2,3,4,5,6,7,8,9]
+if "wins" not in st.session_state:
+    st.session_state.wins = 0
+if "loses" not in st.session_state:
+    st.session_state.loses = 0
+if "round" not in st.session_state:
     st.session_state.round = 1
-    st.session_state.my_nums = list(range(1, 10))
-    st.session_state.opps_nums = list(range(1, 10))
-    st.session_state.history = []             # 라운드 기록
-    st.session_state.win = 0
-    st.session_state.lose = 0
+if "first" not in st.session_state:
+    st.session_state.first = None
+if "my_sub_nums" not in st.session_state:
+    st.session_state.my_sub_nums = []
+if "opps_sub_nums" not in st.session_state:
+    st.session_state.opps_sub_nums = []
+if "game_over" not in st.session_state:
+    st.session_state.game_over = False
 
-st.title("구룡투")  # 게임 이름을 단순하게 "구룡투"로
+st.title("구룡투 게임")
 
-# =======================
-# 게임 시작 전
-# =======================
-if not st.session_state.started:
-    st.markdown("## 선/후공을 선택하세요")
-    choice = st.radio("선택", ["선공", "후공", "랜덤"], horizontal=True)
-
-    if st.button("게임 시작"):
+# -----------------------
+# 선/후공 선택
+# -----------------------
+if st.session_state.first is None:
+    choice = st.radio("선/후공을 선택해주세요", ("선공", "후공", "랜덤"))
+    if st.button("결정"):
         if choice == "선공":
             st.session_state.first = 1
+            st.success("당신은 선공입니다")
         elif choice == "후공":
             st.session_state.first = 0
+            st.success("당신은 후공입니다")
         else:
-            st.session_state.first = random.randint(0, 1)
+            st.session_state.first = random.randint(0,1)
+            if st.session_state.first == 1:
+                st.success("랜덤 결과: 당신은 선공입니다")
+            else:
+                st.success("랜덤 결과: 당신은 후공입니다")
 
-        st.session_state.started = True
-        st.rerun()
+# -----------------------
+# 게임 진행
+# -----------------------
+elif not st.session_state.game_over:
 
-    st.stop()
+    st.header(f"{st.session_state.round}라운드")
 
-# =======================
-# 9라운드 종료 후 최종 결과
-# =======================
-if st.session_state.round > 9:
-    st.markdown("---")
-    st.markdown("## 🎉 최종 결과 🎉")
-    st.write(f"승리: {st.session_state.win}")
-    st.write(f"패배: {st.session_state.lose}")
+    # -------------------
+    # 선공인 경우
+    # -------------------
+    if st.session_state.first == 1:
+        my_num = st.selectbox("제출할 수를 선택해주세요", st.session_state.my_nums, key=f"my_num_{st.session_state.round}")
+        if st.button("제출", key=f"submit_{st.session_state.round}"):
+            st.session_state.my_nums.remove(my_num)
+            opps_num = random.choice(st.session_state.opps_nums)
+            st.session_state.opps_nums.remove(opps_num)
 
-    if st.session_state.win > st.session_state.lose:
-        st.success("최종 승리!")
-    elif st.session_state.win == st.session_state.lose:
-        st.info("최종 무승부.")
+            st.session_state.my_sub_nums.append(my_num)
+            st.session_state.opps_sub_nums.append(opps_num)
+
+            st.write(f"상대는 {'홀수' if opps_num%2==1 else '짝수'}를 제출하였습니다")
+
+            # 승패 계산
+            if my_num==1 and opps_num==9:
+                win=1
+            elif my_num==9 and opps_num==1:
+                win=0
+            elif my_num>opps_num:
+                win=1
+            elif my_num==opps_num:
+                win=0.5
+            else:
+                win=0
+
+            if win==1:
+                st.success("이번 라운드는 당신의 승리입니다")
+                st.session_state.wins += 1
+                st.session_state.first = 1
+            elif win==0.5:
+                st.info("이번 라운드는 무승부입니다")
+            else:
+                st.error("이번 라운드는 상대방의 승리입니다")
+                st.session_state.loses += 1
+                st.session_state.first = 0
+
+            st.session_state.round += 1
+
+    # -------------------
+    # 후공인 경우
+    # -------------------
     else:
-        st.error("최종 패배...")
-
-    if st.button("다시 시작"):
-        for key in list(st.session_state.keys()):
-            del st.session_state[key]
-        st.rerun()
-
-    st.stop()
-
-# =======================
-# 현재 라운드 표시
-# =======================
-st.markdown(f"## 📢 현재 **{st.session_state.round} 라운드**")
-
-# =======================
-# 선공 라운드
-# =======================
-if st.session_state.first == 1:
-    st.markdown("### 🔥 당신은 **선공**입니다.")
-    my_num = st.selectbox("제출할 숫자", st.session_state.my_nums)
-
-    if st.button("제출"):
-        st.session_state.my_nums.remove(my_num)
-
-        # 상대 숫자 랜덤
         opps_num = random.choice(st.session_state.opps_nums)
         st.session_state.opps_nums.remove(opps_num)
+        st.write(f"상대는 {'홀수' if opps_num%2==1 else '짝수'}를 제출하였습니다")
 
-        # 홀수/짝수 표시
-        opps_parity = "홀수" if opps_num % 2 else "짝수"
-        st.markdown(f"상대는 **{opps_parity}**를 제출했습니다.")
+        my_num = st.selectbox("제출할 수를 선택해주세요", st.session_state.my_nums, key=f"my_num_{st.session_state.round}")
+        if st.button("제출", key=f"submit_{st.session_state.round}"):
+            st.session_state.my_nums.remove(my_num)
+            st.session_state.my_sub_nums.append(my_num)
+            st.session_state.opps_sub_nums.append(opps_num)
 
-        # 판정
-        if my_num == 1 and opps_num == 9:
-            result = "승리"
-            st.session_state.win += 1
-            st.session_state.first = 1
-        elif my_num == 9 and opps_num == 1:
-            result = "패배"
-            st.session_state.lose += 1
-            st.session_state.first = 0
-        elif my_num > opps_num:
-            result = "승리"
-            st.session_state.win += 1
-            st.session_state.first = 1
-        elif my_num == opps_num:
-            result = "무승부"
-        else:
-            result = "패배"
-            st.session_state.lose += 1
-            st.session_state.first = 0
+            # 승패 계산
+            if my_num==1 and opps_num==9:
+                win=1
+            elif my_num==9 and opps_num==1:
+                win=0
+            elif my_num>opps_num:
+                win=1
+            elif my_num==opps_num:
+                win=0.5
+            else:
+                win=0
 
-        # 기록에는 상대 홀수/짝수만 저장
-        st.session_state.history.append({
-            "round": st.session_state.round,
-            "my": my_num,
-            "op": opps_parity,
-            "result": result
-        })
+            if win==1:
+                st.success("이번 라운드는 당신의 승리입니다")
+                st.session_state.wins += 1
+                st.session_state.first = 1
+            elif win==0.5:
+                st.info("이번 라운드는 무승부입니다")
+            else:
+                st.error("이번 라운드는 상대방의 승리입니다")
+                st.session_state.loses += 1
+                st.session_state.first = 0
 
-        st.session_state.round += 1
-        st.rerun()
+            st.session_state.round += 1
 
-# =======================
-# 후공 라운드
-# =======================
-else:
-    st.markdown("### ❄️ 당신은 **후공**입니다.")
+    # -------------------
+    # 조기 종료 또는 9라운드 종료 체크
+    # -------------------
+    remaining_rounds = 9 - len(st.session_state.my_sub_nums)
+    if st.session_state.wins > st.session_state.loses + remaining_rounds or \
+       st.session_state.loses > st.session_state.wins + remaining_rounds or \
+       st.session_state.round > 9:
+        st.session_state.game_over = True
 
-    # 후공일 경우, 상대 숫자를 세션에 고정
-    if f"round_{st.session_state.round}_opponent" not in st.session_state:
-        st.session_state[f"round_{st.session_state.round}_opponent"] = random.choice(st.session_state.opps_nums)
+# -----------------------
+# 게임 종료 화면
+# -----------------------
+if st.session_state.game_over:
+    st.header("게임 종료")
+    if st.session_state.wins > st.session_state.loses:
+        st.success("승리하셨습니다")
+    elif st.session_state.wins == st.session_state.loses:
+        st.info("무승부입니다")
+    else:
+        st.error("패배하셨습니다")
 
-    opps_num = st.session_state[f"round_{st.session_state.round}_opponent"]
-    opps_parity = "홀수" if opps_num % 2 else "짝수"
-    st.markdown(f"상대는 **{opps_parity}**를 제출했습니다.")
-
-    my_num = st.selectbox("제출할 숫자", st.session_state.my_nums)
-
-    if st.button("제출"):
-        st.session_state.my_nums.remove(my_num)
-        st.session_state.opps_nums.remove(opps_num)
-
-        # 판정
-        if my_num == 1 and opps_num == 9:
-            result = "승리"
-            st.session_state.win += 1
-            st.session_state.first = 1
-        elif my_num == 9 and opps_num == 1:
-            result = "패배"
-            st.session_state.lose += 1
-            st.session_state.first = 0
-        elif my_num > opps_num:
-            result = "승리"
-            st.session_state.win += 1
-            st.session_state.first = 1
-        elif my_num == opps_num:
-            result = "무승부"
-        else:
-            result = "패배"
-            st.session_state.lose += 1
-            st.session_state.first = 0
-
-        # 기록
-        st.session_state.history.append({
-            "round": st.session_state.round,
-            "my": my_num,
-            "op": opps_parity,
-            "result": result
-        })
-
-        # 다음 라운드 진행
-        st.session_state.round += 1
-        # 세션 저장된 후공 상대 삭제
-        del st.session_state[f"round_{st.session_state.round-1}_opponent"]
-        st.rerun()
-
-# =======================
-# 라운드 기록 출력
-# =======================
-st.markdown("---")
-st.markdown("## 📜 라운드 진행 상황")
-for h in st.session_state.history:
-    st.markdown(f"**{h['round']} 라운드** → 당신: {h['my']} / 상대: {h['op']} → **{h['result']}**")
+    st.subheader("각 라운드 제출한 수")
+    st.write("라운드 : ", " ".join([str(i) for i in range(1, len(st.session_state.my_sub_nums)+1)]))
+    st.write("당신   : ", " ".join([str(i) for i in st.session_state.my_sub_nums]))
+    st.write("상대방 : ", " ".join([str(i) for i in st.session_state.opps_sub_nums]))
