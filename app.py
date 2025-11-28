@@ -16,6 +16,7 @@ def reset_game():
     st.session_state.opps_sub_nums = []
     st.session_state.wins = 0
     st.session_state.loses = 0
+    st.session_state.round_result = ""   # 🔥 라운드 결과 저장용 추가
 
 if "started" not in st.session_state:
     reset_game()
@@ -80,6 +81,10 @@ else:
     st.subheader(f"현재 당신은 **{'선공' if st.session_state.first == 1 else '후공'}** 입니다.")
     st.markdown(f"## 🔵 {st.session_state.round} 라운드")
 
+    # 🔥 여기서 직전 라운드 결과 보여주기
+    if st.session_state.round > 1:
+        st.info(f"📢 직전 라운드 결과: **{st.session_state.round_result}**")
+
     # --------------------------------
     # 라운드 진행
     # --------------------------------
@@ -120,14 +125,15 @@ else:
             else:
                 win = 0
 
+            # 🔥 라운드 결과 저장
             if win == 1:
-                st.success("이번 라운드: 당신의 승리")
+                st.session_state.round_result = "당신의 승리"
                 st.session_state.wins += 1
                 st.session_state.first = 1
             elif win == 0.5:
-                st.info("이번 라운드: 무승부")
+                st.session_state.round_result = "무승부"
             else:
-                st.error("이번 라운드: 상대 승리")
+                st.session_state.round_result = "상대의 승리"
                 st.session_state.loses += 1
                 st.session_state.first = 0
 
@@ -178,14 +184,15 @@ else:
             else:
                 win = 0
 
+            # 🔥 라운드 결과 저장
             if win == 1:
-                st.success("이번 라운드: 당신의 승리")
+                st.session_state.round_result = "당신의 승리"
                 st.session_state.wins += 1
                 st.session_state.first = 1
             elif win == 0.5:
-                st.info("이번 라운드: 무승부")
+                st.session_state.round_result = "무승부"
             else:
-                st.error("이번 라운드: 상대 승리")
+                st.session_state.round_result = "상대의 승리"
                 st.session_state.loses += 1
                 st.session_state.first = 0
 
@@ -199,3 +206,4 @@ else:
                 st.session_state.round += 1
 
             st.rerun()
+
