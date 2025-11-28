@@ -139,7 +139,7 @@ else:
 
             # 🔥 로그 누적
             st.session_state.round_logs.append(
-                f"{st.session_state.round}라운드: {result_text} (내: {my_num} / 상대: {opps_num})"
+                f"{st.session_state.round}라운드: {my_num}, {result_text}"
             )
 
             # 조기 종료 판단
@@ -201,7 +201,7 @@ else:
 
             # 🔥 로그 누적
             st.session_state.round_logs.append(
-                f"{st.session_state.round}라운드: {result_text}"
+                f"{st.session_state.round}라운드: {my_num}, {result_text}"
             )
 
             # 조기 종료 판단
