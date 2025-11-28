@@ -16,8 +16,8 @@ def reset_game():
     st.session_state.opps_sub_nums = []
     st.session_state.wins = 0
     st.session_state.loses = 0
-    st.session_state.round_result = ""        # 현재 라운드 결과
-    st.session_state.round_logs = []          # 🔥 라운드 전체 로그 누적
+    st.session_state.round_result = ""
+    st.session_state.round_logs = []
 
 if "started" not in st.session_state:
     reset_game()
@@ -41,8 +41,8 @@ def show_result():
     st.write("### 당신의 제출 기록")
     st.write(st.session_state.my_sub_nums)
 
-    st.write("### 상대의 제출 기록")
-    st.write(st.session_state.opps_sub_nums)
+    st.write("### 상대의 제출 기록 (홀/짝만 기록됨)")
+    st.write(["홀수" if n % 2 else "짝수" for n in st.session_state.opps_sub_nums])
 
     st.write("---")
     if st.button("다시 시작하기"):
@@ -73,24 +73,18 @@ if not st.session_state.started:
         st.rerun()
 
 else:
-    # --------------------------------
-    # 조기 종료 또는 최대 9라운드 끝났으면 종료화면
-    # --------------------------------
     if st.session_state.round > 9:
         show_result()
 
     st.subheader(f"현재 당신은 **{'선공' if st.session_state.first == 1 else '후공'}** 입니다.")
     st.markdown(f"## 🔵 {st.session_state.round} 라운드")
 
-    # 🔥 직전 라운드 결과
     if st.session_state.round > 1:
         st.info(f"📢 직전 라운드 결과: **{st.session_state.round_result}**")
 
     # --------------------------------
-    # 라운드 진행
+    # 선공
     # --------------------------------
-
-    # 선공: 나 → 상대
     if st.session_state.first == 1:
 
         my_num = st.selectbox(
@@ -106,7 +100,8 @@ else:
             opps_num = random.choice(st.session_state.opps_nums)
             st.session_state.opps_nums.remove(opps_num)
 
-            st.write(f"상대는 {'홀수' if opps_num % 2 else '짝수'}를 제출하였습니다.")
+            opps_info = "홀수" if opps_num % 2 else "짝수"
+            st.write(f"상대는 {opps_info}를 제출하였습니다.")
 
             st.session_state.my_sub_nums.append(my_num)
             st.session_state.opps_sub_nums.append(opps_num)
@@ -123,7 +118,6 @@ else:
             else:
                 win = 0
 
-            # 🔥 라운드 결과 저장 + 로그 추가
             if win == 1:
                 result_text = "승리"
                 st.session_state.wins += 1
@@ -135,14 +129,14 @@ else:
                 st.session_state.loses += 1
                 st.session_state.first = 0
 
-            st.session_state.round_result = f"{result_text}"
+            st.session_state.round_result = result_text
 
-            # 🔥 로그 누적
+            # 🔥 로그에 상대 숫자 대신 홀/짝만 저장
             st.session_state.round_logs.append(
-                f"{st.session_state.round}라운드: {my_num}, {result_text}"
+                f"{st.session_state.round}라운드: {result_text} (내: {my_num} / 상대: {opps_info})"
             )
 
-            # 조기 종료 판단
+            # 조기 종료
             remain = 9 - st.session_state.round
             if st.session_state.wins > st.session_state.loses + remain:
                 st.session_state.round = 10
@@ -153,12 +147,15 @@ else:
 
             st.rerun()
 
-    # 후공: 상대 → 나
+    # --------------------------------
+    # 후공
+    # --------------------------------
     else:
         opps_num = random.choice(st.session_state.opps_nums)
         st.session_state.opps_nums.remove(opps_num)
 
-        st.write(f"상대는 {'홀수' if opps_num % 2 else '짝수'}를 제출하였습니다.")
+        opps_info = "홀수" if opps_num % 2 else "짝수"
+        st.write(f"상대는 {opps_info}를 제출하였습니다.")
 
         my_num = st.selectbox(
             "제출할 숫자",
@@ -173,7 +170,6 @@ else:
             st.session_state.my_sub_nums.append(my_num)
             st.session_state.opps_sub_nums.append(opps_num)
 
-            # 승부 판정
             if my_num == 1 and opps_num == 9:
                 win = 1
             elif my_num == 9 and opps_num == 1:
@@ -185,7 +181,6 @@ else:
             else:
                 win = 0
 
-            # 🔥 라운드 결과 저장 + 로그 추가
             if win == 1:
                 result_text = "승리"
                 st.session_state.wins += 1
@@ -197,14 +192,13 @@ else:
                 st.session_state.loses += 1
                 st.session_state.first = 0
 
-            st.session_state.round_result = f"{result_text}"
+            st.session_state.round_result = result_text
 
-            # 🔥 로그 누적
+            # 🔥 로그에 홀짝만 기록
             st.session_state.round_logs.append(
-                f"{st.session_state.round}라운드: {my_num}, {result_text}"
+                f"{st.session_state.round}라운드: {result_text} (내: {my_num} / 상대: {opps_info})"
             )
 
-            # 조기 종료 판단
             remain = 9 - st.session_state.round
             if st.session_state.wins > st.session_state.loses + remain:
                 st.session_state.round = 10
@@ -214,6 +208,7 @@ else:
                 st.session_state.round += 1
 
             st.rerun()
+
 
 # -------------------------------
 # 🔥 모든 라운드 로그 출력
