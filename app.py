@@ -78,7 +78,7 @@ if not st.session_state.started:
         st.session_state.started = True
         st.rerun()
 
-
+    st.stop()
 
 # ======================================================================
 # 게임 진행 화면
