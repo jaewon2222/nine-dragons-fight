@@ -1,5 +1,6 @@
 import streamlit as st
 import random
+import pandas as pd
 
 st.title("구룡투")
 
@@ -18,7 +19,7 @@ def reset_game():
     st.session_state.loses = 0
     st.session_state.round_result = ""
     st.session_state.round_logs = []
-    st.session_state.pending_opps_num = None   # 후공에서 상대 수 저장
+    st.session_state.pending_opps_num = None
 
 if "started" not in st.session_state:
     reset_game()
@@ -30,6 +31,7 @@ if "started" not in st.session_state:
 def show_result():
     st.header("🎉 게임 종료!")
 
+    # 최종 승패 표시
     if st.session_state.wins > st.session_state.loses:
         st.success("최종 결과: **승리!**")
     elif st.session_state.wins < st.session_state.loses:
@@ -37,13 +39,22 @@ def show_result():
     else:
         st.info("최종 결과: **무승부**")
 
-    st.subheader("📌 라운드별 제출 기록")
-    st.write("### 당신의 제출 기록")
-    st.write(st.session_state.my_sub_nums)
+    # 🔥 최종 전체 라운드 표 출력 (가로 = 라운드)
+    st.subheader("📊 전체 라운드 기록")
 
-    st.write("### 상대의 제출 기록 (홀/짝으로 표시)")
-    st.write(["홀수" if n % 2 else "짝수" for n in st.session_state.opps_sub_nums])
+    rounds = list(range(1, len(st.session_state.my_sub_nums) + 1))
+    my_nums = st.session_state.my_sub_nums
+    opps_nums = st.session_state.opps_sub_nums
 
+    df = pd.DataFrame({
+        "라운드": rounds,
+        "내가 낸 수": my_nums,
+        "상대가 낸 수": opps_nums  # 🔥 최종에서는 실제 숫자 모두 공개
+    })
+
+    st.table(df)
+
+    st.write("---")
     if st.button("다시 시작하기"):
         reset_game()
         st.rerun()
@@ -94,7 +105,7 @@ else:
 
             st.session_state.my_nums.remove(my_num)
 
-            # 상대 수 생성
+            # 상대 수
             opps_num = random.choice(st.session_state.opps_nums)
             st.session_state.opps_nums.remove(opps_num)
 
@@ -128,11 +139,13 @@ else:
                 st.session_state.first = 0
 
             st.session_state.round_result = result
+
+            # 로그 (라운드 중에는 홀짝만)
             st.session_state.round_logs.append(
                 f"{st.session_state.round}라운드: {result} (내: {my_num} / 상대: {opps_info})"
             )
 
-            # 라운드 증가 & 조기 종료 판정
+            # 조기 종료 판정
             remain = 9 - st.session_state.round
             if st.session_state.wins > st.session_state.loses + remain:
                 st.session_state.round = 10
@@ -147,8 +160,6 @@ else:
     # 후공
     # -------------------------------
     else:
-
-        # 상대 숫자를 아직 저장하지 않았다면 이번 렌더링에서 생성
         if st.session_state.pending_opps_num is None:
             opps_num = random.choice(st.session_state.opps_nums)
             st.session_state.pending_opps_num = opps_num
@@ -166,9 +177,8 @@ else:
 
         if st.button("제출", key=f"submit_{st.session_state.round}"):
 
-            # 상대 숫자 확정 → 이제 제거
             st.session_state.opps_nums.remove(opps_num)
-            st.session_state.pending_opps_num = None  # 초기화
+            st.session_state.pending_opps_num = None
 
             st.session_state.my_nums.remove(my_num)
 
@@ -199,6 +209,7 @@ else:
                 st.session_state.first = 0
 
             st.session_state.round_result = result
+
             st.session_state.round_logs.append(
                 f"{st.session_state.round}라운드: {result} (내: {my_num} / 상대: {opps_info})"
             )
@@ -215,10 +226,10 @@ else:
 
 
 # -------------------------------
-# 라운드 로그 출력
+# 라운드 로그 출력 (홀짝 버전)
 # -------------------------------
 st.markdown("---")
-st.subheader("📜 라운드 기록")
+st.subheader("📜 라운드 로그 (홀/짝 기준)")
 
 for log in st.session_state.round_logs:
     st.write(f"- {log}")
