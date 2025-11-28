@@ -39,25 +39,34 @@ def show_result():
     else:
         st.info("최종 결과: **무승부**")
 
-    # 🔥 최종 전체 라운드 표 출력 (가로 = 라운드)
     st.subheader("📊 전체 라운드 기록")
 
     rounds = list(range(1, len(st.session_state.my_sub_nums) + 1))
     my_nums = st.session_state.my_sub_nums
     opps_nums = st.session_state.opps_sub_nums
 
+    # 🔥 round_logs에서 승/무/패만 추출해 결과 리스트 생성
+    results = []
+    for log in st.session_state.round_logs:
+        if "승리" in log:
+            results.append("승리")
+        elif "패배" in log:
+            results.append("패배")
+        else:
+            results.append("무승부")
+
+    # 🔥 DataFrame 생성 (표에 결과 포함)
     df = pd.DataFrame({
         "라운드": rounds,
         "내가 낸 수": my_nums,
-        "상대가 낸 수": opps_nums  # 최종에서는 실제 숫자 공개
+        "상대가 낸 수": opps_nums,
+        "결과": results
     })
 
     st.table(df)
 
-    st.markdown("---")
-    st.subheader("📜 라운드별 승패 기록")
-
-    # 🔥 라운드 승패 로그 추가
+    st.write("---")
+    st.subheader("📜 라운드별 로그 (홀짝 기준)")
     for log in st.session_state.round_logs:
         st.write(f"- {log}")
 
@@ -67,6 +76,7 @@ def show_result():
         st.rerun()
 
     st.stop()
+
 
 
 # -------------------------------
