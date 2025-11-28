@@ -16,7 +16,8 @@ def reset_game():
     st.session_state.opps_sub_nums = []
     st.session_state.wins = 0
     st.session_state.loses = 0
-    st.session_state.round_result = ""   # 🔥 라운드 결과 저장용 추가
+    st.session_state.round_result = ""        # 현재 라운드 결과
+    st.session_state.round_logs = []          # 🔥 라운드 전체 로그 누적
 
 if "started" not in st.session_state:
     reset_game()
@@ -81,7 +82,7 @@ else:
     st.subheader(f"현재 당신은 **{'선공' if st.session_state.first == 1 else '후공'}** 입니다.")
     st.markdown(f"## 🔵 {st.session_state.round} 라운드")
 
-    # 🔥 여기서 직전 라운드 결과 보여주기
+    # 🔥 직전 라운드 결과
     if st.session_state.round > 1:
         st.info(f"📢 직전 라운드 결과: **{st.session_state.round_result}**")
 
@@ -100,16 +101,13 @@ else:
 
         if st.button("제출", key=f"submit_{st.session_state.round}"):
 
-            # 내 제출
             st.session_state.my_nums.remove(my_num)
 
-            # 상대 제출
             opps_num = random.choice(st.session_state.opps_nums)
             st.session_state.opps_nums.remove(opps_num)
 
             st.write(f"상대는 {'홀수' if opps_num % 2 else '짝수'}를 제출하였습니다.")
 
-            # 기록 저장
             st.session_state.my_sub_nums.append(my_num)
             st.session_state.opps_sub_nums.append(opps_num)
 
@@ -125,17 +123,24 @@ else:
             else:
                 win = 0
 
-            # 🔥 라운드 결과 저장
+            # 🔥 라운드 결과 저장 + 로그 추가
             if win == 1:
-                st.session_state.round_result = "당신의 승리"
+                result_text = "승리"
                 st.session_state.wins += 1
                 st.session_state.first = 1
             elif win == 0.5:
-                st.session_state.round_result = "무승부"
+                result_text = "무승부"
             else:
-                st.session_state.round_result = "상대의 승리"
+                result_text = "패배"
                 st.session_state.loses += 1
                 st.session_state.first = 0
+
+            st.session_state.round_result = f"{result_text}"
+
+            # 🔥 로그 누적
+            st.session_state.round_logs.append(
+                f"{st.session_state.round}라운드: {result_text} (내: {my_num} / 상대: {opps_num})"
+            )
 
             # 조기 종료 판단
             remain = 9 - st.session_state.round
@@ -148,16 +153,13 @@ else:
 
             st.rerun()
 
-
     # 후공: 상대 → 나
     else:
-        # 상대 제출
         opps_num = random.choice(st.session_state.opps_nums)
         st.session_state.opps_nums.remove(opps_num)
 
         st.write(f"상대는 {'홀수' if opps_num % 2 else '짝수'}를 제출하였습니다.")
 
-        # 내가 제출할 숫자 선택
         my_num = st.selectbox(
             "제출할 숫자",
             st.session_state.my_nums,
@@ -168,7 +170,6 @@ else:
 
             st.session_state.my_nums.remove(my_num)
 
-            # 기록 저장
             st.session_state.my_sub_nums.append(my_num)
             st.session_state.opps_sub_nums.append(opps_num)
 
@@ -184,17 +185,24 @@ else:
             else:
                 win = 0
 
-            # 🔥 라운드 결과 저장
+            # 🔥 라운드 결과 저장 + 로그 추가
             if win == 1:
-                st.session_state.round_result = "당신의 승리"
+                result_text = "승리"
                 st.session_state.wins += 1
                 st.session_state.first = 1
             elif win == 0.5:
-                st.session_state.round_result = "무승부"
+                result_text = "무승부"
             else:
-                st.session_state.round_result = "상대의 승리"
+                result_text = "패배"
                 st.session_state.loses += 1
                 st.session_state.first = 0
+
+            st.session_state.round_result = f"{result_text}"
+
+            # 🔥 로그 누적
+            st.session_state.round_logs.append(
+                f"{st.session_state.round}라운드: {result_text} (내: {my_num} / 상대: {opps_num})"
+            )
 
             # 조기 종료 판단
             remain = 9 - st.session_state.round
@@ -207,3 +215,11 @@ else:
 
             st.rerun()
 
+# -------------------------------
+# 🔥 모든 라운드 로그 출력
+# -------------------------------
+st.markdown("---")
+st.subheader("📜 라운드 기록")
+
+for log in st.session_state.round_logs:
+    st.write(f"- {log}")
